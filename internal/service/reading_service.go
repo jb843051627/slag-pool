@@ -9,12 +9,13 @@ import (
 )
 
 type ReadingService struct {
-	store    *store.Store
-	sensors  *SensorService
+	store   *store.Store
+	sensors *SensorService
+	cache   *ReadingCache
 }
 
 func NewReadingService(s *store.Store, ss *SensorService) *ReadingService {
-	return &ReadingService{store: s, sensors: ss}
+	return &ReadingService{store: s, sensors: ss, cache: NewReadingCache()}
 }
 
 func (s *ReadingService) Ingest(ctx context.Context, reading *model.SensorReading) (int64, error) {
@@ -57,5 +58,13 @@ func (s *ReadingService) BatchIngest(ctx context.Context, batch *model.ReadingBa
 }
 
 func (s *ReadingService) GetLatest(ctx context.Context, poolID int64) ([]model.SensorReading, error) {
-	return s.store.Readings().GetLatest(ctx, poolID)
+	if cached, ok := s.cache.Get(poolID); ok {
+		return cached, nil
+	}
+	readings, err := s.store.Readings().GetLatest(ctx, poolID)
+	if err != nil {
+		return nil, err
+	}
+	s.cache.Update(poolID, readings)
+	return readings, nil
 }
