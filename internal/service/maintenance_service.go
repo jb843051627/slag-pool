@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jb843051627/slag-pool/internal/model"
@@ -36,7 +37,7 @@ func (s *MaintenanceService) Get(ctx context.Context, id int64) (*model.Maintena
 		return nil, err
 	}
 	if t == nil {
-		return nil, store.ErrMaintenanceNotFound
+		return nil, fmt.Errorf("maintenance task not found")
 	}
 	return t, nil
 }
