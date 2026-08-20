@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -29,6 +30,9 @@ func (s *ReportService) GeneratePoolReport(ctx context.Context, poolID int64) (m
 	readings, _ := s.store.Readings().GetLatest(ctx, poolID)
 	alerts, _ := s.store.Alerts().ListByPool(ctx, poolID)
 	tasks, _ := s.store.Maintenance().ListByPool(ctx, poolID)
+	sort.Slice(alerts, func(i, j int) bool {
+		return alerts[i].CreatedAt.After(alerts[j].CreatedAt)
+	})
 
 	activeAlerts := 0
 	for _, a := range alerts {
@@ -95,6 +99,9 @@ func (s *ReportService) GenerateMaintenanceReport(ctx context.Context, poolID in
 	if err != nil {
 		return nil, err
 	}
+	sort.Slice(tasks, func(i, j int) bool {
+		return tasks[i].ScheduledDate.After(tasks[j].ScheduledDate)
+	})
 	pool, _ := s.store.Pools().GetByID(ctx, poolID)
 	pending, completed := 0, 0
 	for _, t := range tasks {
