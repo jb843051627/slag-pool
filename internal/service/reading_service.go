@@ -27,6 +27,7 @@ func (s *ReadingService) Ingest(ctx context.Context, reading *model.SensorReadin
 	if reading.Quality == "" {
 		reading.Quality = model.ReadingQualityGood
 	}
+	reading.Timestamp = reading.Timestamp.UTC()
 	return s.store.Readings().Create(ctx, reading)
 }
 

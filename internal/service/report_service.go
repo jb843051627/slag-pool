@@ -81,10 +81,11 @@ func (s *ReportService) ExportReadingsCSV(ctx context.Context, poolID int64, sta
 	sb.WriteString("id,sensor_id,pool_id,value,unit,quality,timestamp\n")
 	for _, r := range readings {
 		if !r.Timestamp.Before(start) && !r.Timestamp.After(end) {
+			utc := r.Timestamp.UTC()
 			sb.WriteString(fmt.Sprintf("%d,%d,%d,%s,%s,%s,%s\n",
 				r.ID, r.SensorID, r.PoolID,
 				strings.TrimRight(strings.TrimLeft(fmt.Sprintf("%f", r.Value), "0"), "."),
-				r.Unit, r.Quality, r.Timestamp.Format(time.RFC3339)))
+				r.Unit, r.Quality, utc.Format(time.RFC3339)))
 		}
 	}
 	return sb.String(), nil

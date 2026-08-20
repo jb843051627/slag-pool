@@ -23,6 +23,7 @@ func (s *AlertService) Create(ctx context.Context, alert *model.Alert) (int64, e
 	if alert.CreatedAt.IsZero() {
 		alert.CreatedAt = time.Now()
 	}
+	alert.CreatedAt = alert.CreatedAt.UTC()
 	if alert.Status == "" {
 		alert.Status = model.AlertStatusActive
 	}
