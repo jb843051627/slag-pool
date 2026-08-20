@@ -53,10 +53,7 @@ func (s *AlertService) Acknowledge(ctx context.Context, id int64, routedTo strin
 }
 
 func (s *AlertService) Resolve(ctx context.Context, id int64) error {
-	a, err := s.Get(ctx, id)
-	if err != nil {
-		return err
-	}
+	a, _ := s.Get(ctx, id)
 	now := time.Now()
 	a.Status = model.AlertStatusResolved
 	a.ResolvedAt = &now
