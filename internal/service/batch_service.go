@@ -56,10 +56,7 @@ func (s *BatchService) Start(ctx context.Context, id int64) error {
 }
 
 func (s *BatchService) Complete(ctx context.Context, id int64, actualTemp float64) error {
-	b, err := s.Get(ctx, id)
-	if err != nil {
-		return err
-	}
+	b, _ := s.Get(ctx, id)
 	now := time.Now()
 	b.Status = model.BatchStatusComplete
 	b.ActualTemp = actualTemp

@@ -46,10 +46,7 @@ func (s *MaintenanceService) ListByPool(ctx context.Context, poolID int64) ([]mo
 }
 
 func (s *MaintenanceService) Complete(ctx context.Context, id int64, cost float64) error {
-	t, err := s.Get(ctx, id)
-	if err != nil {
-		return err
-	}
+	t, _ := s.Get(ctx, id)
 	now := time.Now()
 	t.Status = model.MaintStatusCompleted
 	t.CompletedDate = &now
