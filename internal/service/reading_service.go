@@ -31,11 +31,11 @@ func (s *ReadingService) Ingest(ctx context.Context, reading *model.SensorReadin
 }
 
 func (s *ReadingService) ListBySensor(ctx context.Context, sensorID int64, limit int) ([]model.SensorReading, error) {
-	return s.store.Readings().ListBySensor(ctx, sensorID, int64(limit))
+	return s.store.Readings().ListBySensor(context.Background(), sensorID, int64(limit))
 }
 
 func (s *ReadingService) ListByPool(ctx context.Context, poolID int64, limit int) ([]model.SensorReading, error) {
-	return s.store.Readings().ListByPool(ctx, poolID, int64(limit))
+	return s.store.Readings().ListByPool(context.Background(), poolID, int64(limit))
 }
 
 func (s *ReadingService) BatchIngest(ctx context.Context, batch *model.ReadingBatch) error {
@@ -53,7 +53,7 @@ func (s *ReadingService) BatchIngest(ctx context.Context, batch *model.ReadingBa
 			batch.Readings[i].Quality = model.ReadingQualityGood
 		}
 	}
-	return s.store.Readings().BatchCreate(ctx, batch.Readings)
+	return s.store.Readings().BatchCreate(context.Background(), batch.Readings)
 }
 
 func (s *ReadingService) GetLatest(ctx context.Context, poolID int64) ([]model.SensorReading, error) {
