@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>渣池水冷循环监控系统</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>渣池水冷循环监控系统</h1>
+        <span class="status-indicator" id="system-status">运行中</span>
+    </div>
+    <div class="dashboard">
+        <div class="panel">
+            <h2>渣池列表</h2>
+            <div class="pool-grid" id="pool-list"></div>
+        </div>
+        <div class="panel">
+            <h2>实时告警</h2>
+            <table class="data-table" id="alert-table">
+                <thead><tr><th>池</th><th>类型</th><th>级别</th><th>消息</th><th>时间</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="panel">
+            <h2>冷却批次</h2>
+            <table class="data-table" id="batch-table">
+                <thead><tr><th>编号</th><th>池</th><th>状态</th><th>目标温度</th><th>实际温度</th><th>开始时间</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="panel">
+            <h2>最新读数</h2>
+            <table class="data-table" id="reading-table">
+                <thead><tr><th>传感器ID</th><th>值</th><th>单位</th><th>质量</th><th>时间</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
