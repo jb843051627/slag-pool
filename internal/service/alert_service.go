@@ -46,10 +46,14 @@ func (s *AlertService) ListByPool(ctx context.Context, poolID int64) ([]model.Al
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(alerts, func(i, j int) bool {
-		return alerts[i].CreatedAt.After(alerts[j].CreatedAt)
+	// store may return its internal cached slice; sort on a copy so the
+	// shared cache ordering is not mutated for other callers.
+	sorted := make([]model.Alert, len(alerts))
+	copy(sorted, alerts)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].CreatedAt.After(sorted[j].CreatedAt)
 	})
-	return alerts, nil
+	return sorted, nil
 }
 
 func (s *AlertService) ListByStatus(ctx context.Context, status string) ([]model.Alert, error) {
