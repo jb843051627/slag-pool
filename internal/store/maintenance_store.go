@@ -82,6 +82,37 @@ func (s *MaintenanceStore) Update(ctx context.Context, task *model.MaintenanceTa
 	return nil
 }
 
+func (s *MaintenanceStore) BatchUpdate(ctx context.Context, tasks []model.MaintenanceTask) error {
+	if len(tasks) == 0 {
+		return ErrInvalidInput
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+	for _, t := range tasks {
+		var exists int
+		if err := tx.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM maintenance_tasks WHERE id=?", t.ID).Scan(&exists); err != nil {
+			continue
+		}
+		if exists == 0 {
+			continue
+		}
+		var completedVal any
+		if t.CompletedDate != nil {
+			completedVal = t.CompletedDate.Format(time.RFC3339)
+		}
+		if _, err := tx.ExecContext(ctx,
+			"UPDATE maintenance_tasks SET status=?, completed_date=?, cost=? WHERE id=?",
+			t.Status, completedVal, t.Cost, t.ID); err != nil {
+			continue
+		}
+	}
+	return tx.Commit()
+}
+
 func scanMaintenanceTasks(rows *sql.Rows) ([]model.MaintenanceTask, error) {
 	var tasks []model.MaintenanceTask
 	for rows.Next() {

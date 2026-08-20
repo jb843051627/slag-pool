@@ -67,3 +67,15 @@ func (s *MaintenanceService) Schedule(ctx context.Context, task *model.Maintenan
 	}
 	return s.store.Maintenance().Create(ctx, task)
 }
+
+func (s *MaintenanceService) BatchComplete(ctx context.Context, ids []int64, cost float64) error {
+	if len(ids) == 0 {
+		return store.ErrInvalidInput
+	}
+	now := time.Now()
+	tasks := make([]model.MaintenanceTask, len(ids))
+	for i, id := range ids {
+		tasks[i] = model.MaintenanceTask{ID: id, Status: model.MaintStatusCompleted, CompletedDate: &now, Cost: cost}
+	}
+	return s.store.Maintenance().BatchUpdate(ctx, tasks)
+}
