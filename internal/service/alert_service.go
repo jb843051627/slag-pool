@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jb843051627/slag-pool/internal/model"
@@ -36,7 +35,7 @@ func (s *AlertService) Get(ctx context.Context, id int64) (*model.Alert, error) 
 		return nil, err
 	}
 	if a == nil {
-		return nil, fmt.Errorf("alert not found")
+		return nil, store.ErrAlertNotFound
 	}
 	return a, nil
 }
