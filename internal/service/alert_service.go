@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/jb843051627/slag-pool/internal/model"
@@ -41,11 +42,25 @@ func (s *AlertService) Get(ctx context.Context, id int64) (*model.Alert, error) 
 }
 
 func (s *AlertService) ListByPool(ctx context.Context, poolID int64) ([]model.Alert, error) {
-	return s.store.Alerts().ListByPool(ctx, poolID)
+	alerts, err := s.store.Alerts().ListByPool(ctx, poolID)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(alerts, func(i, j int) bool {
+		return alerts[i].CreatedAt.After(alerts[j].CreatedAt)
+	})
+	return alerts, nil
 }
 
 func (s *AlertService) ListByStatus(ctx context.Context, status string) ([]model.Alert, error) {
-	return s.store.Alerts().ListByStatus(ctx, status)
+	alerts, err := s.store.Alerts().ListByStatus(ctx, status)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(alerts, func(i, j int) bool {
+		return alerts[i].CreatedAt.After(alerts[j].CreatedAt)
+	})
+	return alerts, nil
 }
 
 func (s *AlertService) Acknowledge(ctx context.Context, id int64, routedTo string) error {
