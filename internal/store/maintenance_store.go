@@ -37,7 +37,8 @@ func (s *MaintenanceStore) GetByID(ctx context.Context, id int64) (*model.Mainte
 	row := s.db.QueryRowContext(ctx,
 		"SELECT id, pool_id, equipment_id, type, description, status, priority, scheduled_date, completed_date, assigned_to, cost, created_at FROM maintenance_tasks WHERE id = ?", id)
 	var t model.MaintenanceTask
-	var scheduledDate, completedDate, createdAt string
+	var scheduledDate, createdAt string
+	var completedDate sql.NullString
 	if err := row.Scan(&t.ID, &t.PoolID, &t.EquipmentID, &t.Type, &t.Description, &t.Status, &t.Priority, &scheduledDate, &completedDate, &t.AssignedTo, &t.Cost, &createdAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -45,8 +46,8 @@ func (s *MaintenanceStore) GetByID(ctx context.Context, id int64) (*model.Mainte
 		return nil, fmt.Errorf("scan maintenance task: %w", err)
 	}
 	t.ScheduledDate, _ = time.Parse(time.RFC3339, scheduledDate)
-	if completedDate != "" {
-		cd, _ := time.Parse(time.RFC3339, completedDate)
+	if completedDate.Valid {
+		cd, _ := time.Parse(time.RFC3339, completedDate.String)
 		t.CompletedDate = &cd
 	}
 	t.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
@@ -85,13 +86,14 @@ func scanMaintenanceTasks(rows *sql.Rows) ([]model.MaintenanceTask, error) {
 	var tasks []model.MaintenanceTask
 	for rows.Next() {
 		var t model.MaintenanceTask
-		var scheduledDate, completedDate, createdAt string
+		var scheduledDate, createdAt string
+		var completedDate sql.NullString
 		if err := rows.Scan(&t.ID, &t.PoolID, &t.EquipmentID, &t.Type, &t.Description, &t.Status, &t.Priority, &scheduledDate, &completedDate, &t.AssignedTo, &t.Cost, &createdAt); err != nil {
 			return nil, fmt.Errorf("scan maintenance task row: %w", err)
 		}
 		t.ScheduledDate, _ = time.Parse(time.RFC3339, scheduledDate)
-		if completedDate != "" {
-			cd, _ := time.Parse(time.RFC3339, completedDate)
+		if completedDate.Valid {
+			cd, _ := time.Parse(time.RFC3339, completedDate.String)
 			t.CompletedDate = &cd
 		}
 		t.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)

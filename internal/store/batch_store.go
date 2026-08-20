@@ -20,7 +20,8 @@ func (s *BatchStore) GetByID(ctx context.Context, id int64) (*model.CoolingBatch
 	row := s.db.QueryRowContext(ctx,
 		"SELECT id, pool_id, batch_number, start_time, end_time, target_temp, actual_temp, volume, source, status, created_at FROM cooling_batches WHERE id = ?", id)
 	var b model.CoolingBatch
-	var startTime, endTime, createdAt string
+	var startTime, createdAt string
+	var endTime sql.NullString
 	if err := row.Scan(&b.ID, &b.PoolID, &b.BatchNumber, &startTime, &endTime, &b.TargetTemp, &b.ActualTemp, &b.Volume, &b.Source, &b.Status, &createdAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -28,8 +29,8 @@ func (s *BatchStore) GetByID(ctx context.Context, id int64) (*model.CoolingBatch
 		return nil, fmt.Errorf("scan batch: %w", err)
 	}
 	b.StartTime, _ = time.Parse(time.RFC3339, startTime)
-	if endTime != "" {
-		et, _ := time.Parse(time.RFC3339, endTime)
+	if endTime.Valid {
+		et, _ := time.Parse(time.RFC3339, endTime.String)
 		b.EndTime = &et
 	}
 	b.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
@@ -118,13 +119,14 @@ func scanBatches(rows *sql.Rows) ([]model.CoolingBatch, error) {
 	var batches []model.CoolingBatch
 	for rows.Next() {
 		var b model.CoolingBatch
-		var startTime, endTime, createdAt string
+		var startTime, createdAt string
+		var endTime sql.NullString
 		if err := rows.Scan(&b.ID, &b.PoolID, &b.BatchNumber, &startTime, &endTime, &b.TargetTemp, &b.ActualTemp, &b.Volume, &b.Source, &b.Status, &createdAt); err != nil {
 			return nil, fmt.Errorf("scan batch row: %w", err)
 		}
 		b.StartTime, _ = time.Parse(time.RFC3339, startTime)
-		if endTime != "" {
-			et, _ := time.Parse(time.RFC3339, endTime)
+		if endTime.Valid {
+			et, _ := time.Parse(time.RFC3339, endTime.String)
 			b.EndTime = &et
 		}
 		b.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)

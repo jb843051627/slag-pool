@@ -42,7 +42,8 @@ func (s *AlertStore) GetByID(ctx context.Context, id int64) (*model.Alert, error
 	row := s.db.QueryRowContext(ctx,
 		"SELECT id, pool_id, sensor_id, type, level, message, status, routed_to, created_at, acknowledged_at, resolved_at FROM alerts WHERE id = ?", id)
 	var a model.Alert
-	var createdAt, ackAt, resAt string
+	var createdAt string
+	var ackAt, resAt sql.NullString
 	var sensorID sql.NullInt64
 	if err := row.Scan(&a.ID, &a.PoolID, &sensorID, &a.Type, &a.Level, &a.Message, &a.Status, &a.RoutedTo, &createdAt, &ackAt, &resAt); err != nil {
 		if err == sql.ErrNoRows {
@@ -55,12 +56,12 @@ func (s *AlertStore) GetByID(ctx context.Context, id int64) (*model.Alert, error
 		a.SensorID = &sid
 	}
 	a.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
-	if ackAt != "" {
-		t, _ := time.Parse(time.RFC3339, ackAt)
+	if ackAt.Valid {
+		t, _ := time.Parse(time.RFC3339, ackAt.String)
 		a.AcknowledgedAt = &t
 	}
-	if resAt != "" {
-		t, _ := time.Parse(time.RFC3339, resAt)
+	if resAt.Valid {
+		t, _ := time.Parse(time.RFC3339, resAt.String)
 		a.ResolvedAt = &t
 	}
 	return &a, nil
@@ -145,7 +146,8 @@ func scanAlerts(rows *sql.Rows) ([]model.Alert, error) {
 	var alerts []model.Alert
 	for rows.Next() {
 		var a model.Alert
-		var createdAt, ackAt, resAt string
+		var createdAt string
+		var ackAt, resAt sql.NullString
 		var sensorID sql.NullInt64
 		if err := rows.Scan(&a.ID, &a.PoolID, &sensorID, &a.Type, &a.Level, &a.Message, &a.Status, &a.RoutedTo, &createdAt, &ackAt, &resAt); err != nil {
 			return nil, fmt.Errorf("scan alert row: %w", err)
@@ -155,12 +157,12 @@ func scanAlerts(rows *sql.Rows) ([]model.Alert, error) {
 			a.SensorID = &sid
 		}
 		a.CreatedAt, _ = time.Parse(time.RFC3339, createdAt)
-		if ackAt != "" {
-			t, _ := time.Parse(time.RFC3339, ackAt)
+		if ackAt.Valid {
+			t, _ := time.Parse(time.RFC3339, ackAt.String)
 			a.AcknowledgedAt = &t
 		}
-		if resAt != "" {
-			t, _ := time.Parse(time.RFC3339, resAt)
+		if resAt.Valid {
+			t, _ := time.Parse(time.RFC3339, resAt.String)
 			a.ResolvedAt = &t
 		}
 		alerts = append(alerts, a)
