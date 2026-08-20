@@ -22,9 +22,6 @@ func (s *PoolService) Get(ctx context.Context, id int64) (*model.SlagPool, error
 	if err != nil {
 		return nil, err
 	}
-	if p == nil {
-		return nil, store.ErrPoolNotFound
-	}
 	return p, nil
 }
 
@@ -60,12 +57,9 @@ func (s *PoolService) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *PoolService) GetStatus(ctx context.Context, poolID int64) (*model.PoolStatus, error) {
-	p, err := s.store.Pools().GetByID(ctx, poolID)
+	_, err := s.store.Pools().GetByID(ctx, poolID)
 	if err != nil {
 		return nil, err
-	}
-	if p == nil {
-		return nil, store.ErrPoolNotFound
 	}
 	status := &model.PoolStatus{PoolID: poolID}
 	readings, _ := s.store.Readings().GetLatest(ctx, poolID)

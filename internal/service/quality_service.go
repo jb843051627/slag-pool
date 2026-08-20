@@ -53,9 +53,7 @@ func (s *QualityService) Analyze(ctx context.Context, poolID int64) (*model.Qual
 		Compliance:  true,
 		GeneratedAt: time.Now(),
 	}
-	if pool != nil {
-		report.PoolName = pool.Name
-	}
+	report.PoolName = pool.Name
 	limits := model.QualityLimits
 	if wq.PH < limits.PHMin || wq.PH > limits.PHMax {
 		report.Compliance = false
