@@ -53,7 +53,10 @@ func (s *SensorService) Update(ctx context.Context, sensor *model.Sensor) error 
 }
 
 func (s *SensorService) AssignToPool(ctx context.Context, sensorID, poolID int64) error {
-	sen, _ := s.Get(ctx, sensorID)
+	sen, err := s.Get(ctx, sensorID)
+	if err != nil {
+		return err
+	}
 	sen.PoolID = poolID
 	return s.store.Sensors().Update(ctx, sen)
 }
