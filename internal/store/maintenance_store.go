@@ -90,15 +90,17 @@ func (s *MaintenanceStore) BatchUpdate(ctx context.Context, tasks []model.Mainte
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
+	// 整批原子提交：任一条对不上（不存在或更新失败）立即返回错误，
+	// defer 的 Rollback 会回滚本批次此前已应用的更新，杜绝部分生效。
 	defer tx.Rollback()
 	for _, t := range tasks {
 		var exists int
 		if err := tx.QueryRowContext(ctx,
 			"SELECT COUNT(*) FROM maintenance_tasks WHERE id=?", t.ID).Scan(&exists); err != nil {
-			continue
+			return fmt.Errorf("check maintenance task %d: %w", t.ID, err)
 		}
 		if exists == 0 {
-			continue
+			return fmt.Errorf("maintenance task %d: %w", t.ID, ErrMaintenanceNotFound)
 		}
 		var completedVal any
 		if t.CompletedDate != nil {
@@ -107,7 +109,7 @@ func (s *MaintenanceStore) BatchUpdate(ctx context.Context, tasks []model.Mainte
 		if _, err := tx.ExecContext(ctx,
 			"UPDATE maintenance_tasks SET status=?, completed_date=?, cost=? WHERE id=?",
 			t.Status, completedVal, t.Cost, t.ID); err != nil {
-			continue
+			return fmt.Errorf("update maintenance task %d: %w", t.ID, err)
 		}
 	}
 	return tx.Commit()
